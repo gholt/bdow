@@ -12,9 +12,14 @@ import (
 )
 
 func main() {
+	fmt.Println(time.Now())
+	fmt.Println(time.Now(), "\n   ", bdow())
+}
+
+func bdow() error {
 	processes, err := ps.Processes()
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("error obtaining process list %v", err)
 	}
 	pid := 0
 	for _, process := range processes {
@@ -23,13 +28,13 @@ func main() {
 		}
 	}
 	if pid == 0 {
-		panic("PID for BlackDesert64.exe not found")
+		return fmt.Errorf("PID for BlackDesert64.exe not found")
 	}
 	for {
 		netstat := exec.Command("cmd", "/C netstat -ano")
 		output, err := netstat.Output()
 		if err != nil {
-			panic(err)
+			return fmt.Errorf("error running netstat %v", err)
 		}
 		lineEndSearch := " " + strconv.Itoa(pid)
 		connected := false
@@ -42,15 +47,15 @@ func main() {
 		if !connected {
 			process, err := os.FindProcess(pid)
 			if err != nil {
-				panic(err)
+				return fmt.Errorf("error finding process for pid %d %v", pid, err)
 			}
 			err = process.Kill()
 			if err != nil {
-				panic(err)
+				return fmt.Errorf("error killing process %v", err)
 			}
-			fmt.Println("Killed", time.Now())
-			return
+			return fmt.Errorf("killed")
 		}
 		time.Sleep(time.Second * 300)
 	}
+	return nil
 }
